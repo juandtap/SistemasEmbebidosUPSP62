@@ -30,47 +30,63 @@ const int pin1N4 = 25;  // Conectado a 1N4
 int delayTime = 10; // Tiempo de retardo entre pasos
 int stepsPerRevolution = 200; // Número de pasos para una revolución completa
 
+const int MAX_NUMBERS = 10;  // Número máximo de dígitos a leer
 
-int code = 0;
-int lcd_pos = 0;
+char numbers[MAX_NUMBERS + 1];  // Array para almacenar los dígitos leídos (más uno para el carácter nulo)
+
+bool shouldClearLCD = false; // Variable de control para determinar si se debe borrar la pantalla
+
 AccelStepper stepper(AccelStepper::FULL4WIRE, pin1N1, pin1N3, pin1N2, pin1N4);
 
 void setup() {
- 
+
   Serial.begin(9600);
-  lcd.begin(16,2);
-  lcd.setCursor(0,0);
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
   lcd.print("Motor de paso:");
-   // Configurar la velocidad máxima y aceleración del motor
+  // Configurar la velocidad máxima y aceleración del motor
   stepper.setMaxSpeed(500);     // Configura la velocidad máxima en pasos por segundo
   stepper.setAcceleration(500);  // Configura la aceleración en pasos por segundo por segundo
- 
+
 }
 
 void loop() {
 
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
 
   char key = keypad.getKey();
 
   if (key) {
-    Serial.println(key);
-    
-    code+=key;
-    lcd_pos++;
-    lcd.setCursor(lcd_pos,1);
-    lcd.print(key);
+
+    if (key == '*') {
+      numbers[MAX_NUMBERS - 1] = '\0';
+      girar_sentido_horario(numbers);
+      shouldClearLCD = true;
+    } else if ( key == '#') {
+
+      numbers[MAX_NUMBERS - 1] = '\0';
+      girar_sentido_antihorario(numbers);
+      shouldClearLCD = true;
+
+
+    } else {
+      if (strlen(numbers) < MAX_NUMBERS) {
+        strcat(numbers, &key);
+
+        if (shouldClearLCD) {
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Motor de paso:");
+          shouldClearLCD = false;
+        }
+
+        lcd.setCursor(strlen(numbers), 1);
+        lcd.print(key);
+      }
+    }
   }
+}
 
-  if(key == "*"){
-      stepper.move(1000);  // Mueve 200 pasos en sentido horario
-      stepper.runToPosition();
-
-      delay(1000);  // Espera 1 segundo
-  }
-
-  
-  
 //  // Gira en sentido horario
 //  stepper.move(1000);  // Mueve 200 pasos en sentido horario
 //  stepper.runToPosition();
@@ -82,5 +98,17 @@ void loop() {
 //  stepper.runToPosition();
 //
 //  delay(1000);  // Espera 1 segundo
-  
+
+
+
+void girar_sentido_horario(const char* num) {
+  int numero_pasos = atoi(num);
+  stepper.move(numero_pasos);
+  stepper.runToPosition();
+}
+
+void girar_sentido_antihorario(const char* num) {
+  int numero_pasos = atoi(num);
+  stepper.move(-numero_pasos);
+  stepper.runToPosition();
 }
