@@ -62,12 +62,13 @@ void loop() {
       numbers[MAX_NUMBERS - 1] = '\0';
       girar_sentido_horario(numbers);
       shouldClearLCD = true;
+      memset(numbers, 0, sizeof(numbers));  // Limpiar el array numbers
     } else if ( key == '#') {
 
       numbers[MAX_NUMBERS - 1] = '\0';
       girar_sentido_antihorario(numbers);
       shouldClearLCD = true;
-
+      memset(numbers, 0, sizeof(numbers));  // Limpiar el array numbers
 
     } else {
       if (strlen(numbers) < MAX_NUMBERS) {
